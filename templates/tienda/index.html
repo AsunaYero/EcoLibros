@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inicio - Librería Online{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Descubre tu próxima lectura</h1>
+                <p class="lead mb-4">Explora nuestra amplia colección de libros de todas las categorías. Desde clásicos hasta las últimas novedades.</p>
+                <a href="#libros-destacados" class="btn btn-light btn-lg">
+                    <i class="fas fa-book me-2"></i>Ver Catálogo
+                </a>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-book-open display-1 opacity-75"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Filtros -->
+<section class="py-4 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <h4 class="mb-3">Filtrar por categoría:</h4>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'index' %}" class="btn btn-outline-primary {% if not categoria_actual %}active{% endif %}">
+                        Todas
+                    </a>
+                    {% for categoria in categorias %}
+                    <a href="{% url 'index' %}?categoria={{ categoria.id }}" 
+                       class="btn btn-outline-primary {% if categoria_actual == categoria.id|stringformat:'s' %}active{% endif %}">
+                        {{ categoria.nombre }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <p class="text-muted mb-0">
+                    <i class="fas fa-book me-1"></i>
+                    {{ libros.paginator.count }} libros encontrados
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Libros Destacados -->
+{% if libros_destacados %}
+<section id="libros-destacados" class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">
+            <i class="fas fa-star text-warning me-2"></i>Libros Destacados
+        </h2>
+        <div class="row">
+            {% for libro in libros_destacados %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card h-100 shadow-sm libro-card">
+                    {% if libro.imagen %}
+                    <img src="{{ libro.imagen.url }}" class="card-img-top" alt="{{ libro.titulo }}" style="height: 250px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+                        <i class="fas fa-book fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ libro.titulo }}</h5>
+                        <p class="card-text text-muted">{{ libro.autor }}</p>
+                        <p class="card-text flex-grow-1">{{ libro.descripcion|truncatewords:15 }}</p>
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="h5 text-primary mb-0">${{ libro.precio|floatformat:0 }}</span>
+                                <span class="badge bg-success">{{ libro.categoria.nombre }}</span>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'detalle_libro' libro.id %}" class="btn btn-outline-primary btn-sm">
+                                    Ver Detalles
+                                </a>
+                                <button class="btn btn-primary btn-sm agregar-carrito" data-libro-id="{{ libro.id }}">
+                                    <i class="fas fa-cart-plus me-1"></i>Agregar al Carrito
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Catálogo Completo -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">
+            <i class="fas fa-list me-2"></i>Catálogo Completo
+        </h2>
+        
+        {% if libros %}
+        <div class="row">
+            {% for libro in libros %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card h-100 shadow-sm libro-card">
+                    {% if libro.imagen %}
+                    <img src="{{ libro.imagen.url }}" class="card-img-top" alt="{{ libro.titulo }}" style="height: 250px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+                        <i class="fas fa-book fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ libro.titulo }}</h5>
+                        <p class="card-text text-muted">{{ libro.autor }}</p>
+                        <p class="card-text flex-grow-1">{{ libro.descripcion|truncatewords:15 }}</p>
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="h5 text-primary mb-0">${{ libro.precio|floatformat:0 }}</span>
+                                <span class="badge bg-success">{{ libro.categoria.nombre }}</span>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'detalle_libro' libro.id %}" class="btn btn-outline-primary btn-sm">
+                                    Ver Detalles
+                                </a>
+                                <button class="btn btn-primary btn-sm agregar-carrito" data-libro-id="{{ libro.id }}">
+                                    <i class="fas fa-cart-plus me-1"></i>Agregar al Carrito
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación -->
+        {% if libros.has_other_pages %}
+        <nav aria-label="Paginación de libros">
+            <ul class="pagination justify-content-center">
+                {% if libros.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ libros.previous_page_number }}{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if busqueda_actual %}&busqueda={{ busqueda_actual }}{% endif %}">Anterior</a>
+                </li>
+                {% endif %}
+                
+                {% for num in libros.paginator.page_range %}
+                {% if libros.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > libros.number|add:'-3' and num < libros.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if busqueda_actual %}&busqueda={{ busqueda_actual }}{% endif %}">{{ num }}</a>
+                </li>
+                {% endif %}
+                {% endfor %}
+                
+                {% if libros.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ libros.next_page_number }}{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}{% if busqueda_actual %}&busqueda={{ busqueda_actual }}{% endif %}">Siguiente</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h4>No se encontraron libros</h4>
+            <p class="text-muted">Intenta con otros términos de búsqueda o explora todas las categorías.</p>
+            <a href="{% url 'index' %}" class="btn btn-primary">Ver Todos los Libros</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar al carrito
+    document.querySelectorAll('.agregar-carrito').forEach(button => {
+        button.addEventListener('click', function() {
+            const libroId = this.dataset.libroId;
+            agregarAlCarrito(libroId);
+        });
+    });
+});
+
+function agregarAlCarrito(libroId) {
+    fetch(`/agregar-carrito/${libroId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'cantidad=1'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Actualizar badge del carrito
+            document.getElementById('carrito-badge').textContent = data.cantidad_carrito;
+            
+            // Mostrar mensaje de éxito
+            mostrarMensaje('success', data.mensaje);
+        } else {
+            mostrarMensaje('error', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarMensaje('error', 'Error al agregar el libro al carrito');
+    });
+}
+
+function mostrarMensaje(tipo, mensaje) {
+    const alertClass = tipo === 'success' ? 'alert-success' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+             style="top: 100px; right: 20px; z-index: 9999;" role="alert">
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+    
+    // Auto-remover después de 3 segundos
+    setTimeout(() => {
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            alert.remove();
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}

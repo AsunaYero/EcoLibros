@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ libro.titulo }} - Librería Online{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            {% if libro.imagen %}
+            <img src="{{ libro.imagen.url }}" class="img-fluid rounded shadow" alt="{{ libro.titulo }}">
+            {% else %}
+            <div class="bg-light rounded shadow d-flex align-items-center justify-content-center" style="height: 400px;">
+                <i class="fas fa-book fa-5x text-muted"></i>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="mb-3">
+                <span class="badge bg-primary fs-6">{{ libro.categoria.nombre }}</span>
+            </div>
+            
+            <h1 class="display-5 fw-bold mb-3">{{ libro.titulo }}</h1>
+            <h3 class="text-muted mb-4">por {{ libro.autor }}</h3>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h2 class="text-primary mb-0">${{ libro.precio|floatformat:0 }}</h2>
+                </div>
+                <div class="col-md-6">
+                    {% if libro.disponible %}
+                    <span class="badge bg-success fs-6">
+                        <i class="fas fa-check me-1"></i>Disponible ({{ libro.stock }} unidades)
+                    </span>
+                    {% else %}
+                    <span class="badge bg-danger fs-6">
+                        <i class="fas fa-times me-1"></i>Agotado
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <h4>Descripción</h4>
+                <p class="lead">{{ libro.descripcion }}</p>
+            </div>
+            
+            {% if libro.fecha_publicacion or libro.isbn %}
+            <div class="row mb-4">
+                {% if libro.fecha_publicacion %}
+                <div class="col-md-6">
+                    <strong>Fecha de Publicación:</strong><br>
+                    {{ libro.fecha_publicacion|date:"F Y" }}
+                </div>
+                {% endif %}
+                {% if libro.isbn %}
+                <div class="col-md-6">
+                    <strong>ISBN:</strong><br>
+                    {{ libro.isbn }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <div class="d-grid gap-2 d-md-flex">
+                {% if libro.disponible %}
+                <button class="btn btn-primary btn-lg agregar-carrito" data-libro-id="{{ libro.id }}">
+                    <i class="fas fa-cart-plus me-2"></i>Agregar al Carrito
+                </button>
+                <a href="{% url 'ver_carrito' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-shopping-cart me-2"></i>Ver Carrito
+                </a>
+                {% else %}
+                <button class="btn btn-secondary btn-lg" disabled>
+                    <i class="fas fa-times me-2"></i>Producto Agotado
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Libros Relacionados -->
+    {% if libros_relacionados %}
+    <hr class="my-5">
+    <h3 class="mb-4">
+        <i class="fas fa-book-open me-2"></i>Libros Relacionados
+    </h3>
+    <div class="row">
+        {% for libro_rel in libros_relacionados %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                {% if libro_rel.imagen %}
+                <img src="{{ libro_rel.imagen.url }}" class="card-img-top" alt="{{ libro_rel.titulo }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="fas fa-book fa-2x text-muted"></i>
+                </div>
+                {% endif %}
+                <div class="card-body d-flex flex-column">
+                    <h6 class="card-title">{{ libro_rel.titulo }}</h6>
+                    <p class="card-text text-muted small">{{ libro_rel.autor }}</p>
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="h6 text-primary mb-0">${{ libro_rel.precio|floatformat:0 }}</span>
+                        </div>
+                        <a href="{% url 'detalle_libro' libro_rel.id %}" class="btn btn-outline-primary btn-sm w-100">
+                            Ver Detalles
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar al carrito
+    document.querySelectorAll('.agregar-carrito').forEach(button => {
+        button.addEventListener('click', function() {
+            const libroId = this.dataset.libroId;
+            agregarAlCarrito(libroId);
+        });
+    });
+});
+
+function agregarAlCarrito(libroId) {
+    fetch(`/agregar-carrito/${libroId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'cantidad=1'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Actualizar badge del carrito
+            document.getElementById('carrito-badge').textContent = data.cantidad_carrito;
+            
+            // Mostrar mensaje de éxito
+            mostrarMensaje('success', data.mensaje);
+        } else {
+            mostrarMensaje('error', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarMensaje('error', 'Error al agregar el libro al carrito');
+    });
+}
+
+function mostrarMensaje(tipo, mensaje) {
+    const alertClass = tipo === 'success' ? 'alert-success' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+             style="top: 100px; right: 20px; z-index: 9999;" role="alert">
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+    
+    // Auto-remover después de 3 segundos
+    setTimeout(() => {
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            alert.remove();
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}

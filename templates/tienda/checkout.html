@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Checkout - Librería Online{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-credit-card me-2"></i>Finalizar Compra
+            </h2>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Información de Envío</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="checkout-form">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.nombre_completo|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.email|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.telefono|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.ciudad|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.direccion|as_crispy_field }}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.codigo_postal|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.metodo_pago|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.notas|as_crispy_field }}
+                        </div>
+                        
+                        <!-- Información de Pago (simulada) -->
+                        <div id="info-pago" class="mt-4" style="display: none;">
+                            <h6>Información de Pago</h6>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Nota:</strong> Este es un sistema de demostración. 
+                                Los pagos son simulados y no se procesarán realmente.
+                            </div>
+                            
+                            <div id="pago-tarjeta" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-8 mb-3">
+                                        <label class="form-label">Número de Tarjeta</label>
+                                        <input type="text" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">CVV</label>
+                                        <input type="text" class="form-control" placeholder="123" maxlength="3">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Mes</label>
+                                        <select class="form-select">
+                                            <option>01</option>
+                                            <option>02</option>
+                                            <option>03</option>
+                                            <option>04</option>
+                                            <option>05</option>
+                                            <option>06</option>
+                                            <option>07</option>
+                                            <option>08</option>
+                                            <option>09</option>
+                                            <option>10</option>
+                                            <option>11</option>
+                                            <option>12</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Año</label>
+                                        <select class="form-select">
+                                            <option>2024</option>
+                                            <option>2025</option>
+                                            <option>2026</option>
+                                            <option>2027</option>
+                                            <option>2028</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="pago-pse" style="display: none;">
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-university me-2"></i>
+                                    Serás redirigido a tu banco para completar el pago con PSE.
+                                </div>
+                            </div>
+                            
+                            <div id="pago-efectivo" style="display: none;">
+                                <div class="alert alert-success">
+                                    <i class="fas fa-money-bill-wave me-2"></i>
+                                    Pagarás en efectivo al recibir tu pedido.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{% url 'ver_carrito' %}" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-arrow-left me-2"></i>Volver al Carrito
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check me-2"></i>Confirmar Pedido
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Resumen del Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Libro</th>
+                                    <th>Cant.</th>
+                                    <th>Precio</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in items %}
+                                <tr>
+                                    <td>
+                                        <small>{{ item.libro.titulo }}</small>
+                                    </td>
+                                    <td>{{ item.cantidad }}</td>
+                                    <td>${{ item.subtotal|floatformat:0 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>${{ carrito.total|floatformat:0 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>IVA (19%):</span>
+                        <span>${{ carrito.total|floatformat:0|add:0|mul:0.19|floatformat:0 }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>Total:</strong>
+                        <strong>${{ carrito.total|floatformat:0|add:0|mul:1.19|floatformat:0 }}</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información de Seguridad -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-shield-alt text-success me-2"></i>Compra Segura
+                    </h6>
+                    <ul class="list-unstyled small">
+                        <li><i class="fas fa-check text-success me-2"></i>Datos encriptados</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Garantía de entrega</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Soporte 24/7</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const metodoPagoSelect = document.querySelector('#id_metodo_pago');
+    const infoPago = document.getElementById('info-pago');
+    const pagoTarjeta = document.getElementById('pago-tarjeta');
+    const pagoPse = document.getElementById('pago-pse');
+    const pagoEfectivo = document.getElementById('pago-efectivo');
+    
+    function mostrarInfoPago() {
+        const metodo = metodoPagoSelect.value;
+        
+        if (metodo) {
+            infoPago.style.display = 'block';
+            
+            // Ocultar todos los métodos
+            pagoTarjeta.style.display = 'none';
+            pagoPse.style.display = 'none';
+            pagoEfectivo.style.display = 'none';
+            
+            // Mostrar el método seleccionado
+            if (metodo === 'tarjeta') {
+                pagoTarjeta.style.display = 'block';
+            } else if (metodo === 'pse') {
+                pagoPse.style.display = 'block';
+            } else if (metodo === 'efectivo') {
+                pagoEfectivo.style.display = 'block';
+            }
+        } else {
+            infoPago.style.display = 'none';
+        }
+    }
+    
+    metodoPagoSelect.addEventListener('change', mostrarInfoPago);
+    
+    // Formatear número de tarjeta
+    const numeroTarjeta = document.querySelector('input[placeholder="1234 5678 9012 3456"]');
+    if (numeroTarjeta) {
+        numeroTarjeta.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+    }
+    
+    // Validación del formulario
+    document.getElementById('checkout-form').addEventListener('submit', function(e) {
+        const metodo = metodoPagoSelect.value;
+        
+        if (metodo === 'tarjeta') {
+            const numeroTarjeta = document.querySelector('input[placeholder="1234 5678 9012 3456"]').value;
+            const cvv = document.querySelector('input[placeholder="123"]').value;
+            
+            if (!numeroTarjeta || numeroTarjeta.replace(/\s/g, '').length < 16) {
+                e.preventDefault();
+                alert('Por favor ingresa un número de tarjeta válido');
+                return;
+            }
+            
+            if (!cvv || cvv.length < 3) {
+                e.preventDefault();
+                alert('Por favor ingresa un CVV válido');
+                return;
+            }
+        }
+        
+        // Mostrar loading
+        const submitBtn = document.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+        submitBtn.disabled = true;
+    });
+});
+</script>
+{% endblock %}

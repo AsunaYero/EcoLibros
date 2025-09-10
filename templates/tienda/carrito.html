@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Carrito de Compras - Librería Online{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-shopping-cart me-2"></i>Carrito de Compras
+            </h2>
+        </div>
+    </div>
+    
+    {% if items %}
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Libro</th>
+                                    <th>Precio</th>
+                                    <th>Cantidad</th>
+                                    <th>Subtotal</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in items %}
+                                <tr id="item-{{ item.id }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if item.libro.imagen %}
+                                            <img src="{{ item.libro.imagen.url }}" class="me-3" style="width: 60px; height: 80px; object-fit: cover;" alt="{{ item.libro.titulo }}">
+                                            {% else %}
+                                            <div class="me-3 bg-light d-flex align-items-center justify-content-center" style="width: 60px; height: 80px;">
+                                                <i class="fas fa-book text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-1">{{ item.libro.titulo }}</h6>
+                                                <small class="text-muted">{{ item.libro.autor }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>${{ item.libro.precio|floatformat:0 }}</td>
+                                    <td>
+                                        <div class="input-group" style="width: 120px;">
+                                            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="actualizarCantidad({{ item.id }}, {{ item.cantidad|add:'-1' }})">-</button>
+                                            <input type="number" class="form-control form-control-sm text-center" 
+                                                   value="{{ item.cantidad }}" min="1" max="{{ item.libro.stock }}"
+                                                   onchange="actualizarCantidad({{ item.id }}, this.value)">
+                                            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="actualizarCantidad({{ item.id }}, {{ item.cantidad|add:'1' }})">+</button>
+                                        </div>
+                                    </td>
+                                    <td class="subtotal" data-item-id="{{ item.id }}">${{ item.subtotal|floatformat:0 }}</td>
+                                    <td>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="eliminarItem({{ item.id }})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Resumen del Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">${{ carrito.total|floatformat:0 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>IVA (19%):</span>
+                        <span id="iva">${{ carrito.total|floatformat:0|add:0|mul:0.19|floatformat:0 }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>Total:</strong>
+                        <strong id="total">${{ carrito.total|floatformat:0|add:0|mul:1.19|floatformat:0 }}</strong>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'checkout' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-credit-card me-2"></i>Proceder al Pago
+                        </a>
+                        <a href="{% url 'index' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Seguir Comprando
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-shopping-cart fa-4x text-muted mb-4"></i>
+                <h3>Tu carrito está vacío</h3>
+                <p class="text-muted mb-4">Agrega algunos libros para comenzar tu compra.</p>
+                <a href="{% url 'index' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-book me-2"></i>Explorar Libros
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function actualizarCantidad(itemId, nuevaCantidad) {
+    if (nuevaCantidad < 1) {
+        eliminarItem(itemId);
+        return;
+    }
+    
+    fetch(`/actualizar-carrito/${itemId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `cantidad=${nuevaCantidad}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Actualizar subtotal del item
+            document.querySelector(`[data-item-id="${itemId}"]`).textContent = `$${data.subtotal.toLocaleString()}`;
+            
+            // Actualizar totales
+            actualizarTotales();
+            
+            // Actualizar badge del carrito
+            document.getElementById('carrito-badge').textContent = data.cantidad_carrito || 0;
+        } else {
+            mostrarMensaje('error', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarMensaje('error', 'Error al actualizar el carrito');
+    });
+}
+
+function eliminarItem(itemId) {
+    if (!confirm('¿Estás seguro de que quieres eliminar este libro del carrito?')) {
+        return;
+    }
+    
+    fetch(`/eliminar-carrito/${itemId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remover fila de la tabla
+            document.getElementById(`item-${itemId}`).remove();
+            
+            // Actualizar totales
+            actualizarTotales();
+            
+            // Actualizar badge del carrito
+            document.getElementById('carrito-badge').textContent = data.cantidad_carrito || 0;
+            
+            // Verificar si el carrito está vacío
+            if (document.querySelectorAll('tbody tr').length === 0) {
+                location.reload();
+            }
+        } else {
+            mostrarMensaje('error', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarMensaje('error', 'Error al eliminar el libro del carrito');
+    });
+}
+
+function actualizarTotales() {
+    // Recalcular totales basado en los subtotales actuales
+    let subtotal = 0;
+    document.querySelectorAll('.subtotal').forEach(element => {
+        const valor = parseFloat(element.textContent.replace('$', '').replace(',', ''));
+        subtotal += valor;
+    });
+    
+    const iva = subtotal * 0.19;
+    const total = subtotal + iva;
+    
+    document.getElementById('subtotal').textContent = `$${subtotal.toLocaleString()}`;
+    document.getElementById('iva').textContent = `$${iva.toLocaleString()}`;
+    document.getElementById('total').textContent = `$${total.toLocaleString()}`;
+}
+
+function mostrarMensaje(tipo, mensaje) {
+    const alertClass = tipo === 'success' ? 'alert-success' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+             style="top: 100px; right: 20px; z-index: 9999;" role="alert">
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+    
+    // Auto-remover después de 3 segundos
+    setTimeout(() => {
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            alert.remove();
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}

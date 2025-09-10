@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reportes de Ventas - Librería Online{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-chart-bar me-2"></i>Reportes de Ventas
+                </h2>
+                <div>
+                    <a href="{% url 'panel_vendedor' %}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-arrow-left me-1"></i>Volver al Panel
+                    </a>
+                    <a href="/admin/" class="btn btn-primary">
+                        <i class="fas fa-cog me-1"></i>Administración
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ventas por Mes -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line me-2"></i>Ventas por Mes (Últimos 12 meses)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Mes</th>
+                                    <th>Cantidad de Pedidos</th>
+                                    <th>Total Vendido</th>
+                                    <th>Promedio por Pedido</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for venta in ventas_por_mes %}
+                                <tr>
+                                    <td>{{ venta.mes }}</td>
+                                    <td>{{ venta.cantidad }}</td>
+                                    <td>${{ venta.total|floatformat:0 }}</td>
+                                    <td>
+                                        {% if venta.cantidad > 0 %}
+                                        ${{ venta.total|floatformat:0|div:venta.cantidad|floatformat:0 }}
+                                        {% else %}
+                                        $0
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Libros Más Vendidos -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-trophy me-2"></i>Libros Más Vendidos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if libros_vendidos %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Posición</th>
+                                    <th>Libro</th>
+                                    <th>Cantidad Vendida</th>
+                                    <th>Ingresos Generados</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for libro in libros_vendidos %}
+                                <tr>
+                                    <td>
+                                        {% if forloop.counter == 1 %}
+                                        <i class="fas fa-medal text-warning"></i> 1°
+                                        {% elif forloop.counter == 2 %}
+                                        <i class="fas fa-medal text-secondary"></i> 2°
+                                        {% elif forloop.counter == 3 %}
+                                        <i class="fas fa-medal text-warning"></i> 3°
+                                        {% else %}
+                                        {{ forloop.counter }}°
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ libro.libro__titulo }}</td>
+                                    <td>{{ libro.cantidad_vendida }}</td>
+                                    <td>${{ libro.ingresos|floatformat:0 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                        <h5>No hay datos de ventas</h5>
+                        <p class="text-muted">Los reportes aparecerán aquí cuando se realicen ventas.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resumen Estadístico -->
+    <div class="row mt-4">
+        <div class="col-lg-4 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total de Ventas
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                ${{ ventas_por_mes|length|add:0|mul:0|add:0 }}
+                                {% for venta in ventas_por_mes %}
+                                    {% if forloop.first %}{{ venta.total|floatformat:0 }}{% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total de Pedidos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% for venta in ventas_por_mes %}
+                                    {% if forloop.first %}{{ venta.cantidad }}{% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Libros Únicos Vendidos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ libros_vendidos|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+.text-xs {
+    font-size: 0.7rem;
+}
+.font-weight-bold {
+    font-weight: 700 !important;
+}
+.text-uppercase {
+    text-transform: uppercase !important;
+}
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+</style>
+{% endblock %}

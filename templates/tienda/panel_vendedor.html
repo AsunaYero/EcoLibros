@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Panel del Vendedor - Librería Online{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-chart-line me-2"></i>Panel del Vendedor
+                </h2>
+                <div>
+                    <a href="/admin/" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-cog me-1"></i>Administración
+                    </a>
+                    <a href="{% url 'reportes_ventas' %}" class="btn btn-primary">
+                        <i class="fas fa-chart-bar me-1"></i>Reportes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Estadísticas Principales -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Libros
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_libros }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Libros Activos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ libros_activos }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Sin Stock
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ libros_sin_stock }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Ventas del Mes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ ventas_mes|floatformat:0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Estadísticas de Pedidos -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-shopping-cart me-2"></i>Estado de Pedidos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h3 text-warning">{{ pedidos_pendientes }}</div>
+                                <div class="text-muted">Pendientes</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h3 text-info">{{ pedidos_hoy }}</div>
+                                <div class="text-muted">Hoy</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-tools me-2"></i>Acciones Rápidas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/admin/tienda/libro/add/" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>Agregar Libro
+                        </a>
+                        <a href="/admin/tienda/pedido/" class="btn btn-primary">
+                            <i class="fas fa-list me-2"></i>Gestionar Pedidos
+                        </a>
+                        <a href="/admin/tienda/categoria/add/" class="btn btn-info">
+                            <i class="fas fa-tags me-2"></i>Agregar Categoría
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Últimos Pedidos -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-clock me-2"></i>Últimos Pedidos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if ultimos_pedidos %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Cliente</th>
+                                    <th>Email</th>
+                                    <th>Total</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pedido in ultimos_pedidos %}
+                                <tr>
+                                    <td>#{{ pedido.id }}</td>
+                                    <td>{{ pedido.nombre_completo }}</td>
+                                    <td>{{ pedido.email }}</td>
+                                    <td>${{ pedido.total|floatformat:0 }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if pedido.estado == 'pendiente' %}bg-warning
+                                            {% elif pedido.estado == 'procesando' %}bg-info
+                                            {% elif pedido.estado == 'enviado' %}bg-primary
+                                            {% elif pedido.estado == 'entregado' %}bg-success
+                                            {% elif pedido.estado == 'cancelado' %}bg-danger
+                                            {% endif %}">
+                                            {{ pedido.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ pedido.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <a href="/admin/tienda/pedido/{{ pedido.id }}/change/" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                        <h5>No hay pedidos recientes</h5>
+                        <p class="text-muted">Los pedidos aparecerán aquí cuando los clientes realicen compras.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+.text-xs {
+    font-size: 0.7rem;
+}
+.font-weight-bold {
+    font-weight: 700 !important;
+}
+.text-uppercase {
+    text-transform: uppercase !important;
+}
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+</style>
+{% endblock %}
